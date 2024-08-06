@@ -1,0 +1,380 @@
+---
+title: "R Notebook"
+author: "Pradip Basnet"
+output:
+  html_document:
+    df_print: paged
+---
+#installing the necessary package
+
+```{r}
+
+```
+
+#loading the necesary package
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(treemap)
+```
+
+#loading the datasets
+
+```{r}
+# Load the datasets
+members_df <- read_csv('namesOfAllmembers.csv')
+moist_center_df <- read_csv("~/Desktop/R/Party System/PartyWiseData/MoistCenter.csv")
+ncp_unified_df <- read_csv("~/Desktop/R/Party System/PartyWiseData/NCP(Unified Socialist).csv")
+ncp_unified_df
+aamjanta_df <- read_csv("~/Desktop/R/Party System/PartyWiseData/aamJanataparty.csv")
+independent_df <- read_csv("~/Desktop/R/Party System/PartyWiseData/independent.csv")
+janata_samajbadi_df <- read.csv("~/Desktop/R/Party System/PartyWiseData/JanataSamajbadiparty.csv")
+janmat_df <- read_csv("~/Desktop/R/Party System/PartyWiseData/janmatparty.csv")
+laktantricSamajbadi_df <- read_csv("~/Desktop/R/Party System/PartyWiseData/laktantricSamajbadiParty.csv")
+majdur_Kisan <- read_csv("~/Desktop/R/Party System/PartyWiseData/MajdurKishanParty.csv")
+nagrik_Unmuktipur <- read_csv("~/Desktop/R/Party System/PartyWiseData/nagrikUnmuktiparty.csv")
+National_independent <- read_csv("~/Desktop/R/Party System/PartyWiseData/NationalindependentParty.csv")
+NCP_UML <- read_csv("~/Desktop/R/Party System/PartyWiseData/NCP(UML).csv")
+nepali_congress <- read_csv("~/Desktop/R/Party System/PartyWiseData/nepalicongress.csv")
+rasriya_janamorcha <- read_csv("~/Desktop/R/Party System/PartyWiseData/rastriyaJanamorchaparty.csv")
+rastrriya_prajatantra <- read_csv("~/Desktop/R/Party System/PartyWiseData/RastriyaPrajatantraParty.csv")
+samajbadi <- read_csv("~/Desktop/R/Party System/PartyWiseData/SamajbadiParty.csv")
+```
+
+```{r}
+# Display the first few rows of each dataset to understand their structure
+head(members_df)
+head(moist_center_df)
+head(ncp_unified_df)
+head(aamjanta_df)
+head(independent_df)
+head(janata_samajbadi_df)
+head(janmat_df)
+head(laktantricSamajbadi_df)
+head(majdur_Kisan)
+head(nagrik_Unmuktipur)
+head(National_independent)
+head(nepali_congress)
+head(rasriya_janamorcha)
+head(rastrriya_prajatantra)
+head(samajbadi)
+head(NCP_UML)
+#View(NCP_UML)
+```
+
+
+```{r}
+# Assuming you have already created the data frames and added the Party column
+moist_center_df <- moist_center_df %>% mutate(Party = 'Moist Center')
+ncp_unified_df <- ncp_unified_df %>% mutate(Party = 'NCP (Unified Socialist)')
+aamjanta_df <- aamjanta_df %>% mutate(Party = 'Aam Janata Party')
+independent_df <- independent_df %>% mutate(Party = 'Independent')
+janata_samajbadi_df <- janata_samajbadi_df %>% mutate(Party = 'Janata Samajbadi Party')
+janmat_df <- janmat_df %>% mutate(Party = 'Janmat Party')
+laktantricSamajbadi_df <- laktantricSamajbadi_df %>% mutate(Party = 'Laktantric Samajbadi Party')
+majdur_Kisan <- majdur_Kisan %>% mutate(Party = 'Majdur Kisan Party')
+nagrik_Unmuktipur <- nagrik_Unmuktipur %>% mutate(Party = 'Nagrik Unmukti Party')
+National_independent <- National_independent %>% mutate(Party = 'National Independent Party')
+nepali_congress <- nepali_congress %>% mutate(Party = 'Nepali Congress')
+rasriya_janamorcha <- rasriya_janamorcha %>% mutate(Party = 'Rastriya Janamorcha Party')
+rastrriya_prajatantra <- rastrriya_prajatantra %>% mutate(Party = 'Rastriya Prajatantra Party')
+samajbadi <- samajbadi %>% mutate(Party = 'Samajbadi Party')
+NCP_UML <- NCP_UML %>% mutate(Party = 'NCP(UML)')
+
+# Combine all data frames into one
+combined_df <- bind_rows(
+  moist_center_df, ncp_unified_df, aamjanta_df, independent_df, janata_samajbadi_df,
+  janmat_df, laktantricSamajbadi_df, majdur_Kisan, nagrik_Unmuktipur, National_independent,
+  nepali_congress, rasriya_janamorcha, rastrriya_prajatantra, samajbadi, NCP_UML
+)
+
+# Display the combined data frame
+print(combined_df)
+#View(combined_df)
+
+```
+
+
+
+
+
+
+
+```{r}
+# Check if there are any missing values in the entire data frame
+any_missing <- any(is.na(combined_df))
+
+# Print the result
+print(any_missing)
+
+```
+
+
+```{r}
+# Count missing values by column
+missing_count <- colSums(is.na(combined_df))
+
+# Display the count of missing values
+print(missing_count)
+
+```
+
+
+```{r}
+cleaned_col <- combined_df %>% select(-NepaliName)
+cleaned_col
+```
+
+#Visualization:
+Number of representatives per party.
+
+```{r}
+ggplot(cleaned_col, aes(x = factor(Party))) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(
+    title = "Number of representatives per party",
+    x = "Party",
+    y = "Count of Members"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
+  )
+
+```
+
+Number of representatives per district.
+```{r}
+# Filter and arrange the top 10 parties based on count of members
+top_parties <- cleaned_col %>%
+  group_by(Party) %>%
+  summarise(Count_of_Members = n()) %>%
+  top_n(10, Count_of_Members) %>%
+  arrange(desc(Count_of_Members))
+
+# Filter cleaned_col to include only top 10 parties
+cleaned_col_top10 <- cleaned_col %>%
+  filter(Party %in% top_parties$Party)
+
+# Plotting the top 10 parties
+ggplot(cleaned_col_top10, aes(x = factor(Party))) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(
+    title = "Top 10 Parties by Total Number of Members",
+    x = "Party",
+    y = "Count of Members"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
+  )
+```
+
+
+```{r}
+# Filter and arrange the top 10 parties based on count of members
+top_parties <- cleaned_col %>%
+  group_by(District) %>%
+  summarise(Count_of_Members = n()) %>%
+  top_n(10, Count_of_Members) %>%
+  arrange(desc(Count_of_Members))
+
+# Filter cleaned_col to include only top 10 parties
+cleaned_col_top10 <- cleaned_col %>%
+  filter(District %in% top_parties$District)
+
+# Plotting the top 10 parties
+ggplot(cleaned_col_top10, aes(x = factor(District))) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(
+    title = "Number of representative per party in each district",
+    x = "Party",
+    y = "Count of Members"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
+  )
+```
+
+```{r}
+# Group by 'District' and 'Party' to get the count of members in each combination
+party_district_counts <- cleaned_col %>%
+  group_by(District, Party) %>%
+  summarise(Count_of_Members = n(), .groups = 'drop') # Automatically ungroup after summarise
+```
+
+```{r}
+# Summarise to get the total count of members in each district
+top_districts <- party_district_counts %>%
+  group_by(District) %>%
+  summarise(Total_Members = sum(Count_of_Members)) %>%
+  top_n(5, Total_Members) %>%
+  arrange(desc(Total_Members))
+
+# Filter the main dataset to include only these top districts
+top_district_data <- party_district_counts %>%
+  filter(District %in% top_districts$District)
+
+# Plotting the top districts
+ggplot(top_district_data, aes(x = factor(District), y = Count_of_Members, fill = Party)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(
+    title = "Number of Representatives per Party in Top Districts",
+    x = "District",
+    y = "Count of Members"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
+  )
+
+
+```
+
+```{r}
+# Summarise to get the total count of members for each party
+party_counts <- cleaned_col %>%
+  group_by(Party) %>%
+  summarise(Count_of_Members = n()) %>%
+  mutate(Proportion = Count_of_Members / sum(Count_of_Members)) # Calculate proportion
+
+# Plotting the pie chart
+ggplot(party_counts, aes(x = "", y = Proportion, fill = Party)) +
+  geom_bar(stat = "identity", width = 1, color = "black") +
+  coord_polar(theta = "y") +
+  labs(
+    title = "Proportion of Representatives from Each Party"
+  ) +
+  theme_void() + # Remove background, gridlines, and axis text
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "right"
+  )
+```
+
+```{r}
+# Summarise to get the total count of members for each district
+district_counts <- cleaned_col %>%
+  group_by(District) %>%
+  summarise(Count_of_Members = n()) %>%
+  ungroup() %>%
+  top_n(10, Count_of_Members) # Select top 10 districts by count of members
+
+# Calculate proportion for the selected districts
+district_counts <- district_counts %>%
+  mutate(Proportion = Count_of_Members / sum(Count_of_Members))
+
+# Plotting the pie chart with distinct colors for each district
+ggplot(district_counts, aes(x = "", y = Proportion, fill = District)) +
+  geom_bar(stat = "identity", width = 1, color = "black") +
+  coord_polar(theta = "y") +
+  labs(
+    title = "Proportion of Members in Top 10 Districts",
+    fill = "District"
+  ) +
+  theme_void() + # Remove background, gridlines, and axis text
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "right"
+  )
+```
+
+```{r}
+ #Summarize to get the count of representatives per district and party
+district_party_counts <- cleaned_col %>%
+  group_by(District, Party) %>%
+  summarise(Count_of_Representatives = n()) %>%
+  ungroup()
+
+# Get top 20 districts by count of representatives
+top_20_districts <- district_party_counts %>%
+  group_by(District) %>%
+  summarise(Total_Representatives = sum(Count_of_Representatives)) %>%
+  top_n(20, Total_Representatives) %>%
+  pull(District)
+
+# Filter to include only the top 20 districts
+district_party_counts_top20 <- district_party_counts %>%
+  filter(District %in% top_20_districts)
+
+# Create a heatmap for the top 20 districts
+ggplot(district_party_counts_top20, aes(x = District, y = Party, fill = Count_of_Representatives)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "steelblue") +  # Adjust gradient colors as needed
+  labs(
+    title = "Concentration of Representatives in Top 20 Districts and Party",
+    x = "District",
+    y = "Party",
+    fill = "Count of Representatives"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better readability
+    legend.position = "right"
+  )
+```
+
+
+
+```{r}
+# Calculate the proportion of representatives per district within each party
+party_district_props <- cleaned_col %>%
+  group_by(Party, District) %>%
+  summarise(Count_of_Representatives = n()) %>%
+  ungroup() %>%
+  mutate(Proportion = Count_of_Representatives / sum(Count_of_Representatives))
+
+# Create treemap
+treemap(party_district_props,
+        index = c("Party", "District"),
+        vSize = "Proportion",
+        vColor = "District",
+        draw = TRUE,
+        fontsize.labels = c(12, 10),  # Adjust font sizes for Party and District labels
+        fontcolor.labels = "black",   # Font color for labels
+        fontface.labels = 2,          # Font face (1 = plain, 2 = bold)
+        title = "Proportion of Representatives from Each District within Parties")
+```
+
+```{r}
+# Calculate the number of representatives per district and party
+district_party_counts <- cleaned_col %>%
+  group_by(District, Party) %>%
+  summarise(Count_of_Representatives = n()) %>%
+  ungroup()
+
+# Calculate the total number of representatives per district
+district_totals <- district_party_counts %>%
+  group_by(District) %>%
+  summarise(Total_Representatives = sum(Count_of_Representatives))
+
+# Get top 20 districts by total representatives
+top_20_districts <- district_totals %>%
+  top_n(20, Total_Representatives) %>%
+  pull(District)
+
+# Filter district_party_counts to include only the top 20 districts
+district_party_counts_top20 <- district_party_counts %>%
+  filter(District %in% top_20_districts)
+
+# Create dot plot for top 20 districts
+ggplot(district_party_counts_top20, aes(x = District, y = Count_of_Representatives, color = Party)) +
+  geom_point(size = 3, alpha = 0.8) +
+  labs(
+    title = "Number of Representatives per District (Top 20)",
+    x = "District",
+    y = "Number of Representatives",
+    color = "Party"
+  ) +
+  theme_minimal() +  # Use minimal theme for cleaner look
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
+  )
+```
+
+
+
+
